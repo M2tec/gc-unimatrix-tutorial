@@ -1,32 +1,76 @@
+import './App.css'
+
 import { useEffect, useState } from 'react'
+import { cardano as CardanoSync } from '@gamechanger-finance/unimatrix'
+import * as CSLib from '@emurgo/cardano-serialization-lib-browser';
+import Gun from 'gun';
+
 import holdingHandsImage from './assets/holding_hands.png'
 import proposalsImage from './assets/proposals.jpg'
-import './App.css'
-// import { Address } from '@emurgo/cardano-serialization-lib-browser'
 
 function App() {
   const [members, setMembers] = useState({})
   const [proposals, setProposals] = useState({})
-  
+
   useEffect(() => {
-     let getMembers = JSON.parse( localStorage.getItem("members_0"));
 
-     console.log(getMembers)
-     if (getMembers === null) {
-        console.log("null null null")
-        getMembers = { 0: { type: "Controller", name: "maarten", member_address: "xxxx" } }
-     }
+    // Setup Unimatrix
+    //const connection = new Gun({ peers: ["https://preprod-sunflower.m2tec.nl/unimatrix/gun"] });
+    const connection = new Gun();
 
-     setMembers({ ...members, ...getMembers })
+    (async () => {
 
-     let getProposals = JSON.parse( localStorage.getItem("proposals_0"));
+      //We listen for announced group of transaction hashes
+      CardanoSync.onTxHashes({
+        CSL: CSLib,
+        db: connection,
+        id: "M2tec_1234",
+        dltTag: "cardano",
+        networkTag: "preprod",
+        subPath: ["signTxs"],
+        cb: async ({ txHashes, validationError, userError, timeoutError, store, node, stop }) => {
+          for (const txHash of txHashes) {
+              console.log(`Received announcement for transaction ${txHash}`)
+          }
+        },
+      });
+    })();
 
-     if (getProposals === null) {
+    //  CardanoSync.onTxHashes({
+    //   //dependencies:
+    //   CSL:CSLib,
+    //   db: connection,
+    //   // channel parameters:
+    //   id: "M2tec_1234",
+    //   dltTag: "cardano",
+    //   networkTag: "preprod",
+    //   subPath: "signTxs",
+    //   // callback that gets fired on each broadcasted transaction group:
+    //   cb:async ({txHashes,stop})=>{
+    //       for (const txHash of txHashes) {
+    //           console.log(`Received announcement for transaction ${txHash}`)
+    //       }
+    //   }})
+
+    // Get data from localstorage
+    let getMembers = JSON.parse(localStorage.getItem("members_0"));
+
+    console.log(getMembers)
+    if (getMembers === null) {
+      console.log("null null null")
+      getMembers = { 0: { type: "Controller", name: "maarten", member_address: "xxxx" } }
+    }
+
+    setMembers({ ...members, ...getMembers })
+
+    let getProposals = JSON.parse(localStorage.getItem("proposals_0"));
+
+    if (getProposals === null) {
       console.log("null null null")
       getProposals = { 0: { type: "Governance", name: "New prop", details: "Payout contractor 5 ADA", receiver_address: "xxxx", amount: 5 } }
-     }
+    }
 
-     setProposals({ ...proposals, ...getProposals })
+    setProposals({ ...proposals, ...getProposals })
   }, []);
 
   async function handleAddMember(e) {
@@ -134,7 +178,7 @@ function App() {
     </li>
 
   );
-  
+
 
   return (
     <>
@@ -149,7 +193,7 @@ function App() {
           <a className="btn btn-primary m-3" onClick={handleCreateDAO}>Create DAO</a>
         </div>
       </div>
- 
+
       <div className="card mt-3">
         <img className="card-img-top" src={proposalsImage} alt="Card image cap" />
         <div className="card-body">
@@ -160,7 +204,7 @@ function App() {
           </ul>
         </div>
       </div>
-    </> 
+    </>
   )
 }
 
