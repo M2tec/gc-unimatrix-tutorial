@@ -11,8 +11,22 @@ const Home = () => {
     const [proposals, setProposals] = useState({})
   
     const gc = window.gc;
-    const controllerMember = { 0: { type: "Controller", name: "John", address: "", pubKey: "" } }
+    const defaultMemberData = { 0: { type: "Controller", name: "John", address: "", pubKey: "" } }
   
+    async function handleGC(gcscript) {
+
+        console.log(JSON.stringify(gcscript))
+
+        const url = await gc.encode.url({
+          input: JSON.stringify(gcscript), // GCScript is pure JSON code, supported on all platforms
+          apiVersion: '2', //APIV2
+          network: 'preprod', // mainnet or preprod
+          encoding: 'gzip' //suggested, default message encoding/compression 
+        });
+    
+        window.open(url, '_blank', 'location=yes,height=700,width=520,scrollbars=yes,status=yes');
+    }
+
     useEffect(() => {
   
       // Setup Unimatrix
@@ -58,7 +72,7 @@ const Home = () => {
   
       console.log(getMembers)
       if (getMembers === null) {
-        getMembers = controllerMember
+        getMembers = defaultMemberData
       }
   
       setMembers({ ...members, ...getMembers })
@@ -73,9 +87,7 @@ const Home = () => {
 
 
       window.addEventListener('storage', () => {
-        // When local storage changes, dump the list to
-        // the console.
-        setMembers(JSON.parse(localStorage.getItem('members_0')) || [])   
+        setMembers(JSON.parse(localStorage.getItem('members_0')) || {})   
       });
     }, []);
   
@@ -107,9 +119,7 @@ const Home = () => {
     }
   
     async function getSpendPubKey(event, index) {
-  
-      console.log("Change address");
-  
+
       let memberAddress = members[index].address
   
       const gcscript={
@@ -130,24 +140,7 @@ const Home = () => {
         "returnURLPattern":"http://localhost:5173/return-data?d={result}"
       }
       
-      console.log(JSON.stringify(gcscript))
-
-      const url = await gc.encode.url({
-        input: JSON.stringify(gcscript), // GCScript is pure JSON code, supported on all platforms
-        apiVersion: '2', //APIV2
-        network: 'preprod', // mainnet or preprod
-        encoding: 'gzip' //suggested, default message encoding/compression 
-      });
-  
-      window.open(url, '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
-  
-      // let changedMembers = { ...members }
-      // changedMembers[index].pubKey = 
-      // setMembers({ ...changedMembers })
-  
-      // console.log(members)
-      // localStorage.setItem("members_0", JSON.stringify({ ...members }))
-  
+      handleGC(gcscript);    
     }
   
     async function handleAddMember(e) {
@@ -155,22 +148,16 @@ const Home = () => {
       console.log("Add member");
   
       let newNumber = parseInt(Object.keys(members)[Object.keys(members).length - 1]) + 1;
-  
-      console.log(newNumber)
-  
       let newMember = {}
   
       newMember[newNumber] = { type: "Member", name: "", address: "", pubKey: "" }
-  
       setMembers({ ...members, ...newMember })
       localStorage.setItem("members_0", JSON.stringify({ ...members, ...newMember }))
-  
-      console.log(members)
-  
+    
     }
   
     async function resetMembers(e) {
-      localStorage.setItem("members_0", JSON.stringify(controllerMember))
+      localStorage.setItem("members_0", JSON.stringify(defaultMemberData))
       let getMembers = JSON.parse(localStorage.getItem("members_0"));
       setMembers({ ...getMembers })
       console.log("Reset")
@@ -180,6 +167,27 @@ const Home = () => {
     async function handleCreateDAO(e) {
   
       console.log("Create DAO");
+
+      const gcscript={
+        "type": "script",
+        "title":"Get user data",
+        "description":"Get the pubkey hash for the specified address",
+        "exportAs": "userData",
+        "run": {
+            "id": {
+                "type": "data",
+                "value": "" + index + ""
+                },
+            "addressInfo": {
+                    "type": "macro",
+                    "run": "{getAddressInfo('" + memberAddress + "')}"
+            }
+        },
+        "returnURLPattern":"http://localhost:5173/return-data?d={result}"
+      }
+      
+      handleGC(gcscript);  
+
     }
   
     async function handleAddProposal(e) {
@@ -187,19 +195,11 @@ const Home = () => {
       console.log("Add proposal");
   
       let newNumber = parseInt(Object.keys(proposals)[Object.keys(proposals).length - 1]) + 1;
-  
-      console.log(newNumber)
-  
       let newProposals = {}
   
       newProposals[newNumber] = { type: "Governance", name: "New prop", details: "Payout contractor 5 ADA", receiver_address: "xxxx", amount: 5 }
-  
-  
       setProposals({ ...proposals, ...newProposals })
-      localStorage.setItem("proposals_0", JSON.stringify({ ...proposals, ...newProposals }))
-  
-      console.log(proposals)
-  
+      localStorage.setItem("proposals_0", JSON.stringify({ ...proposals, ...newProposals })) 
     }
   
     async function handleAuthorizeProposal(e) {
