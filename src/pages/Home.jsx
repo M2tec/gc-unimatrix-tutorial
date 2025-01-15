@@ -11,7 +11,7 @@ const Home = () => {
     const [proposals, setProposals] = useState({})
   
     const gc = window.gc;
-    const controllerMember = { 0: { type: "Controller", name: "John", member_address: "", member_pubKey: "" } }
+    const controllerMember = { 0: { type: "Controller", name: "John", address: "", pubKey: "" } }
   
     useEffect(() => {
   
@@ -70,6 +70,13 @@ const Home = () => {
       }
   
       setProposals({ ...proposals, ...getProposals })
+
+
+      window.addEventListener('storage', () => {
+        // When local storage changes, dump the list to
+        // the console.
+        setMembers(JSON.parse(localStorage.getItem('members_0')) || [])   
+      });
     }, []);
   
   
@@ -91,7 +98,7 @@ const Home = () => {
       console.log("Change address");
   
       let changedMembers = { ...members }
-      changedMembers[index].member_address = event.target.value
+      changedMembers[index].address = event.target.value
       setMembers({ ...changedMembers })
   
       console.log(members)
@@ -103,7 +110,7 @@ const Home = () => {
   
       console.log("Change address");
   
-      let memberAddress = members[index].member_address
+      let memberAddress = members[index].address
   
       const gcscript={
         "type": "script",
@@ -111,6 +118,10 @@ const Home = () => {
         "description":"Get the pubkey hash for the specified address",
         "exportAs": "userData",
         "run": {
+            "id": {
+                "type": "data",
+                "value": "" + index + ""
+                },
             "addressInfo": {
                     "type": "macro",
                     "run": "{getAddressInfo('" + memberAddress + "')}"
@@ -119,6 +130,8 @@ const Home = () => {
         "returnURLPattern":"http://localhost:5173/return-data?d={result}"
       }
       
+      console.log(JSON.stringify(gcscript))
+
       const url = await gc.encode.url({
         input: JSON.stringify(gcscript), // GCScript is pure JSON code, supported on all platforms
         apiVersion: '2', //APIV2
@@ -129,7 +142,7 @@ const Home = () => {
       window.open(url, '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
   
       // let changedMembers = { ...members }
-      // changedMembers[index].member_pubKey = 
+      // changedMembers[index].pubKey = 
       // setMembers({ ...changedMembers })
   
       // console.log(members)
@@ -147,7 +160,7 @@ const Home = () => {
   
       let newMember = {}
   
-      newMember[newNumber] = { type: "Member", name: "", member_address: "", member_pubKey: "" }
+      newMember[newNumber] = { type: "Member", name: "", address: "", pubKey: "" }
   
       setMembers({ ...members, ...newMember })
       localStorage.setItem("members_0", JSON.stringify({ ...members, ...newMember }))
@@ -209,14 +222,14 @@ const Home = () => {
           <div className="input-group-prepend">
             <span className="input-group-text" id="basic-addon1">Address</span>
           </div>
-          <input type="text" onChange={(e) => handleAddressChange(e, index)} className="form-control" placeholder="Cardano address" defaultValue={members[item].member_address} aria-label="Username" aria-describedby="basic-addon1" />
+          <input type="text" onChange={(e) => handleAddressChange(e, index)} className="form-control" placeholder="Cardano address" defaultValue={members[item].address} aria-label="Username" aria-describedby="basic-addon1" />
         </div>
   
         <div className="input-group mb-3">
           <div className="input-group-prepend">
             <span className="input-group-text" id="basic-addon1">Public Key</span>
           </div>
-          <input type="text" className="form-control" disabled="disabled" placeholder="" defaultValue={members[item].member_pubKey} aria-label="Username" aria-describedby="basic-addon1" />
+          <input type="text" className="form-control" disabled="disabled" placeholder="" defaultValue={members[item].pubKey} aria-label="Username" aria-describedby="basic-addon1" />
           <a className="btn btn-primary" onClick={(e) => getSpendPubKey(e, index)}>Get</a>
         </div>
       </li>
