@@ -11,6 +11,8 @@ const Home = () => {
   const [proposals, setProposals] = useState({})
   const [daoInfo, setDaoInfo] = useState({})
 
+  const [host, setHost] = useState("")
+
   const gc = window.gc;
   const defaultMemberData = { 0: { type: "Controller", name: "John", address: "", pubKey: "", stakeKey: "" } }
 
@@ -100,6 +102,11 @@ const Home = () => {
     window.addEventListener('storage', () => {
       setMembers(JSON.parse(localStorage.getItem('members_0')) || {})
     });
+
+    let myHostname = location.protocol + '//' + location.host
+    setHost( myHostname );
+    
+    console.log("hostname", myHostname);
   }, []);
 
   async function handleDaoNameChange(event) {
@@ -160,7 +167,7 @@ const Home = () => {
           "run": "{getAddressInfo('" + memberAddress + "')}"
         }
       },
-      "returnURLPattern": "http://localhost:5173/return-data?d={result}"
+      "returnURLPattern": host + "/return-data?d={result}"
     }
 
     handleGC(gcscript);
@@ -243,7 +250,7 @@ const Home = () => {
           ]
         }
       },
-      "returnURLPattern": "http://localhost:5173/return-data?d={result}"
+      "returnURLPattern": host + "/return-data?d={result}"
     }
 
 

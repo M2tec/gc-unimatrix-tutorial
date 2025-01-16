@@ -40,7 +40,7 @@ const Data = () => {
           localStorage.setItem("members_0", JSON.stringify(members))
         }
         
-        window.close()
+        // window.close()
       } else {
         console.log(resultObj.exports)
       }
