@@ -22,22 +22,28 @@ const Data = () => {
     console.log("results")
     if (Object.keys(resultObj).length !== 0) {
 
-      let userdata = resultObj.exports.userData
-      let pubKey = userdata.addressInfo.paymentKeyHash
-      console.log(pubKey)
-      let id = userdata.id
+        if (resultObj.exports.userData) {
+        let userdata = resultObj.exports.userData
+        let pubKey = userdata.addressInfo.paymentKeyHash
+        let stakeKey = userdata.addressInfo.stakingKeyHash
+        // console.log(pubKey)
+        let id = userdata.id
 
-      let getMembers = JSON.parse(localStorage.getItem("members_0"));
+        let members = JSON.parse(localStorage.getItem("members_0"));
 
-      if (getMembers !== null) {
-        console.log("find 'x'", getMembers[resultObj.exports.userData.id] );
+        if (members !== null) {
+          // console.log("memers_0", members[resultObj.exports.userData.id] );
 
-        getMembers[id].pubKey = pubKey
-        console.log(getMembers)
-        localStorage.setItem("members_0", JSON.stringify(getMembers))
+          members[id].pubKey = pubKey
+          members[id].stakeKey = stakeKey
+          // console.log(members)
+          localStorage.setItem("members_0", JSON.stringify(members))
+        }
+        
+        window.close()
+      } else {
+        console.log(resultObj.exports)
       }
-      
-      window.close()
 
     }
   }, [resultObj])
