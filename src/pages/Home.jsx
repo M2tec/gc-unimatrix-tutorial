@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { cardano as CardanoSync } from '@gamechanger-finance/unimatrix'
-import * as CSLib from '@emurgo/cardano-serialization-lib-browser';
+import UnimatrixListener from '../services/UnimatrixListener';
+// import * as CSLib from '@emurgo/cardano-serialization-lib-browser';
 import Gun from 'gun';
+import CardanoWasm from '../services/cardanoWasm';
 
 import holdingHandsImage from '../assets/holding_hands.png'
 import proposalsImage from '../assets/proposals.jpg'
-
-let unimatrixRelays = ["https://ar01.gamechanger.finance:2083/unimatrix/gun"]
 
 const Home = () => {
   const [members, setMembers] = useState({})
@@ -17,7 +17,10 @@ const Home = () => {
   const [host, setHost] = useState("")
 
   const gc = window.gc;
-  const connection = new Gun({ peers: unimatrixRelays });
+  
+  let path = ["signTxs"];
+  let dltTag = "cardano";
+  let networkTag = "preprod";
 
   const defaultMemberData = { 0: { type: "Controller", name: "John", address: "", pubKey: "", stakeKey: "" } };
   const defaultProposalData = { 0: { type: "Governance", name: "", details: "", address: "", amount: "", txHashes: [] } };
@@ -489,116 +492,6 @@ const Home = () => {
 
     console.log("Monitor Proposal");
 
-    (async () => {
-
-      const params = {
-        db: connection,
-        dltTag: "cardano",
-        networkTag: "preprod",
-        id: daoInfo.name + "_" + index,
-        subPath: ["signTxs"],
-      }
-
-
-      //We listen for announced group of transaction hashes
-      // CardanoSync.onTxHashes({
-      //   CSL: CSLib,
-      //   ...params,
-      //   cb: async ({ txHashes, validationError, userError, timeoutError, store, node, stop }) => {
-      //     // if (txHashes) {
-      //     //   // const txGroupId = registerTxHashes({ txHashes })
-      //     //   const txGroupId=CardanoSync.genUnimatrixIdFromTxHashes(txHashes);
-      //     //   console.log("txgroup:", txGroupId)
-      //     // }
-          
-      //     for (const txHash of txHashes) {
-      //       console.log(`Received announcement for transaction ${txHash}`)
-
-
-      //       if (validationError || userError || timeoutError)
-      //         console.warn(`onTxHashes(): Error. ${JSON.stringify({ validationError, userError, timeoutError, node })}`);
-      //       if (txHashes) {
-      //         const {txHex}=await CardanoSync.getTxHex({...params,txHash})
-      //         .catch(err=>{
-      //             console.warn(`Warning: Failed to fetch transaction '${txHash}'.${err||"Unknown error"}`);
-      //             return {};
-      //         });
-      //         console.info(`[INCOMING] ⬇️ ${transactions[txHash]?.txHex?'Known':'New'} CBOR received for transaction '${txHash}' `);
-
-
-      //         // CardanoSync.onTxHex({ CSL: CSLib, ...params, txHash })
-      //         //   //we register the transaction data
-      //         //   // .then(({ txHex }) => registerTxHex({ txGroupId, txHash, txHex, updatedAt }))
-      //         //   .then(({ txHex }) => console.log(txHex))
-      //         //   .catch(err => {
-      //         //     console.warn(`Warning: Failed to fetch transaction '${txHash}'.${err || "Unknown error"}`);
-      //         //     return {};
-      //         //   });
-
-
-
-
-      //         // CardanoSync.getTxHex({ CSL: CSLib, ...params, txHash })
-      //         //   //we register the transaction data
-      //         //   // .then(({ txHex }) => registerTxHex({ txGroupId, txHash, txHex, updatedAt }))
-      //         //   .then(({ txHex }) => console.log(txHex))
-      //         //   .catch(err => {
-      //         //     console.warn(`Warning: Failed to fetch transaction '${txHash}'.${err || "Unknown error"}`);
-      //         //     return {};
-      //         //   });
-
-      //         let updatedProposals = { ...proposals }
-
-      //         updatedProposals["0"].txHashes = [txHash]
-      //         setProposals(updatedProposals)
-      //       }
-
-      //     }
-      //   },
-      // });
-
-      const announcements={};
-      const transactions={};
-
-      CardanoSync.onTxHashes({
-        CSL: CSLib,
-        ...params,
-        cb:async ({txHashes,validationError,userError,timeoutError,store,node,stop})=>{
-            if(validationError)
-                console.warn(`Warning: ValidationError: ${validationError}. Received ${JSON.stringify(node)}`);
-            if(userError)
-                console.warn(`Warning: UserError: ${userError}. Received ${JSON.stringify(node)}`);
-            if(timeoutError)
-                console.warn(`Warning: TimeoutError. This is unexpected`);
-            if(txHashes){
-                const updatedAt=store.updatedAt||0;
-                const announcementKey=`${CardanoSync.genUnimatrixIdFromTxHashes(txHashes)}`
-                console.info(`[INCOMING] 👁️ ${announcements[announcementKey]?'Known':'New'} transactions announced: '${txHashes.join(', ')}' `);
-                announcements[announcementKey]={txHashes,updatedAt};
-                console.dir({announcements},{depth:6});
-                for (const txHash of txHashes) {
-                    const {txHex}=await CardanoSync.getTxHex({...params,txHash})
-                        .catch(err=>{
-                            console.warn(`Warning: Failed to fetch transaction '${txHash}'.${err||"Unknown error"}`);
-                            return {};
-                        });
-                    console.info(`[INCOMING] ⬇️ ${transactions[txHash]?.txHex?'Known':'New'} CBOR received for transaction '${txHash}' `);
-                    transactions[txHash]={updatedAt,txHex,vkWitnesses:{
-                        ...transactions[txHash]?.vkWitnesses||{},
-                    }};
-                    if(txHex){
-                        console.log("tx", txHex)    
-                        
-                    }
-                }
-            }
-        }
-    });
-
-
-      
-    })();
-
   }
 
   async function handleSignProposal(event, index) {
@@ -678,41 +571,48 @@ const Home = () => {
   );
 
   const listProposals = Object.keys(proposals).map((item, index) =>
-
-    <li className="list-group-item" key={index} >{proposals[item].type}
-      <div className="input-group mb-3">
-        <div className="input-group-prepend">
-          <span className="input-group-text" id="basic-addon1">@</span>
+      <li className="list-group-item" key={index} >{proposals[item].type}
+        <div className="input-group mb-3">
+          <div className="input-group-prepend">
+            <span className="input-group-text" id="basic-addon1">@</span>
+          </div>
+          <input type="text" onChange={(e) => handleProposalNameChange(e, index)} className="form-control" placeholder="Proposal name" defaultValue={proposals[item].name} aria-label="Username" aria-describedby="basic-addon1" />
         </div>
-        <input type="text" onChange={(e) => handleProposalNameChange(e, index)} className="form-control" placeholder="Proposal name" defaultValue={proposals[item].name} aria-label="Username" aria-describedby="basic-addon1" />
-      </div>
 
-      <div className="input-group mb-3">
-        <div className="input-group-prepend">
-          <span className="input-group-text" id="basic-addon1">Reciever address</span>
+        <div className="input-group mb-3">
+          <div className="input-group-prepend">
+            <span className="input-group-text" id="basic-addon1">Reciever address</span>
+          </div>
+          <input type="text" onChange={(e) => handleProposalAddressChange(e, index)} className="form-control" placeholder="Cardano address" defaultValue={proposals[item].address} aria-label="Username" aria-describedby="basic-addon1" />
         </div>
-        <input type="text" onChange={(e) => handleProposalAddressChange(e, index)} className="form-control" placeholder="Cardano address" defaultValue={proposals[item].address} aria-label="Username" aria-describedby="basic-addon1" />
-      </div>
 
-      <div className="input-group mb-3">
-        <div className="input-group-prepend">
-          <span className="input-group-text" id="basic-addon1">Details</span>
+        <div className="input-group mb-3">
+          <div className="input-group-prepend">
+            <span className="input-group-text" id="basic-addon1">Details</span>
+          </div>
+          <input type="text" onChange={(e) => handleProposalDetailsChange(e, index)} className="form-control" placeholder="" defaultValue={proposals[item].details} aria-label="Username" aria-describedby="basic-addon1" />
         </div>
-        <input type="text" onChange={(e) => handleProposalDetailsChange(e, index)} className="form-control" placeholder="" defaultValue={proposals[item].details} aria-label="Username" aria-describedby="basic-addon1" />
-      </div>
 
-      <div className="input-group mb-3">
-        <div className="input-group-prepend">
-          <span className="input-group-text" id="basic-addon1">Amount</span>
+        <div className="input-group mb-3">
+          <div className="input-group-prepend">
+            <span className="input-group-text" id="basic-addon1">Amount</span>
+          </div>
+          <input type="text" onChange={(e) => handleProposalAmountChange(e, index)} className="form-control" placeholder="" defaultValue={proposals[item].amount} aria-label="Amount" aria-describedby="basic-addon1" />
         </div>
-        <input type="text" onChange={(e) => handleProposalAmountChange(e, index)} className="form-control" placeholder="" defaultValue={proposals[item].amount} aria-label="Amount" aria-describedby="basic-addon1" />
-      </div>
 
-      <a href="#" className="btn btn-primary m-2" onClick={(e) => handleAuthorizeProposal(e, index)}>Authorize</a>
-      <a href="#" className="btn btn-primary m-2" onClick={(e) => handleMonitorProposal(e, index)}>Monitor</a>
-      <a href="#" className="btn btn-primary m-2" onClick={(e) => handleSignProposal(e, index)}>Sign</a>
-    </li>
+        <a href="#" className="btn btn-primary m-2" onClick={(e) => handleAuthorizeProposal(e, index)}>Authorize</a>
+        <a href="#" className="btn btn-primary m-2" onClick={(e) => handleMonitorProposal(e, index)}>Monitor</a>
+        <a href="#" className="btn btn-primary m-2" onClick={(e) => handleSignProposal(e, index)}>Sign</a>
+        
+        <UnimatrixListener {...{
+          unimatrixId: `${daoInfo.name}-${index}`
+        }} />
 
+
+{/* <UnimatrixListener {...{
+          unimatrixId: `m2tec_1234`
+        }} /> */}
+      </li>
   );
 
   return (
