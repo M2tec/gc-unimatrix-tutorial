@@ -473,7 +473,7 @@ const Home = () => {
               "shareTxs": true,
               "announceTxHashes": true,
               "announceTxHashesSubPath": "signTxs",
-              "relays": unimatrixRelays,
+              "relays": peers,
             },
           ],
           "txs": [
