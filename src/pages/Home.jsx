@@ -4,11 +4,9 @@ import UnimatrixListener from '../services/UnimatrixListener';
 import * as CSLib from '@emurgo/cardano-serialization-lib-browser';
 import Gun from 'gun';
 import CardanoWasm from '../services/cardanoWasm';
-
+import Signers from './Signers';
 import holdingHandsImage from '../assets/holding_hands.png'
 import proposalsImage from '../assets/proposals.jpg'
-
-
 
 const Home = () => {
   const [members, setMembers] = useState({})
@@ -42,7 +40,7 @@ const Home = () => {
   }
 
   useEffect(() => {
-    
+
 
     let getDaoInfo = JSON.parse(localStorage.getItem("daoInfo_0"));
 
@@ -75,7 +73,7 @@ const Home = () => {
       getTransactions = {}
     }
 
-    setDaoTransactions( {...getTransactions} )
+    setDaoTransactions({ ...getTransactions })
 
 
     window.addEventListener('storage', () => {
@@ -201,7 +199,7 @@ const Home = () => {
               "type": "Workspace",
               "items": [
                 {
-                  "namePattern": "multisigs",
+                  "namePattern": daoInfo.name + "_DAO",
                   "titlePattern": daoInfo.name + " multisig",
                   "descriptionPattern": "Multisig wallet " + daoInfo.name
                 }
@@ -210,7 +208,7 @@ const Home = () => {
             {
               "type": "NativeScript",
               "workspaceIds": [
-                "multisigs"
+                daoInfo.name + "_DAO"
               ],
               "namePattern": daoInfo.name + "_{key}_script",
               "items": {
@@ -225,7 +223,7 @@ const Home = () => {
             {
               "type": "Address",
               "workspaceIds": [
-                "multisigs"
+                daoInfo.name + "_DAO",
               ],
               "items": [
                 {
@@ -236,7 +234,14 @@ const Home = () => {
               ]
             }
           ]
-        }
+        },
+        "walletSelect": {
+          "type": "setCurrentWorkspace",
+          "workspaceId": daoInfo.name + "_DAO"
+        },
+        "getAddress": {
+          "type": "getAddresses",
+        } 
       },
       "returnURLPattern": host + "/return-data?d={result}"
     }
@@ -262,11 +267,6 @@ const Home = () => {
 
     }
 
-
-    // console.log(gcscript.run.walletSetup.layers[1].items.spend.all)
-
-    // console.log(gcscript)
-    // console.log(JSON.stringify(gcscript))
     handleGC(gcscript);
 
   }
@@ -541,7 +541,6 @@ const Home = () => {
     handleGC(gcscript);
   }
 
-
   const listMembers = Object.keys(members).map((item, index) =>
 
     <li className="list-group-item" key={index} >{members[item].type}
@@ -607,14 +606,15 @@ const Home = () => {
         <input type="text" onChange={(e) => handleProposalAmountChange(e, index)} className="form-control" placeholder="" defaultValue={proposals[item].amount} aria-label="Amount" aria-describedby="basic-addon1" />
       </div>
 
+      <Signers {...{ members, daoTransactions }} />
       <a href="#" className="btn btn-primary m-2" onClick={(e) => handleAuthorizeProposal(e, index)}>Authorize</a>
       <a href="#" className="btn btn-primary m-2" onClick={(e) => handleSignProposal(e, index)}>Sign</a>
-
       <UnimatrixListener {...{
-          gun,
-          index,
-          unimatrixId: `${daoInfo.name}_${index}`
-        }} /> 
+        gun,
+        index,
+        unimatrixId: `${daoInfo.name}_${index}`,
+        members
+      }} />
     </li>
   );
 
