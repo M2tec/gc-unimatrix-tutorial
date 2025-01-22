@@ -606,7 +606,7 @@ const Home = () => {
         <input type="text" onChange={(e) => handleProposalAmountChange(e, index)} className="form-control" placeholder="" defaultValue={proposals[item].amount} aria-label="Amount" aria-describedby="basic-addon1" />
       </div>
 
-      <Signers {...{ members, daoTransactions }} />
+      <Signers {...{ index, members, daoTransactions }} />
       <a href="#" className="btn btn-primary m-2" onClick={(e) => handleAuthorizeProposal(e, index)}>Authorize</a>
       <a href="#" className="btn btn-primary m-2" onClick={(e) => handleSignProposal(e, index)}>Sign</a>
       <UnimatrixListener {...{

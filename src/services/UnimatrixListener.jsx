@@ -62,7 +62,7 @@ export const UnimatrixListener = ({
 
                                     daoTx = {...daoTx, ...newDaoTx}
 
-                                    console.log("daoTx ---:", daoTx)
+                                    //console.log("daoTx ---:", daoTx)
                                     
                                     localStorage.setItem("transactions_0", JSON.stringify(daoTx))
                                     
@@ -82,21 +82,21 @@ export const UnimatrixListener = ({
                                 CardanoSync.getVkWitnessHex({ ...params, txHash, vkHash })
                                     .then(({ vkWitnessHex }) => {
 
-                                        // let daoTx = JSON.parse(localStorage.getItem('transactions_0'))
+                                        let daoTx = JSON.parse(localStorage.getItem('transactions_0'))
 
+                                        //console.log(daoTx)
                                         // if (daoTx === null) {
                                         //     daoTx = {}
                                         // }
 
-                                        // let txWitnesses = daoTx[index].vkWitnessHex;
+                                        let txWitnesses = {...daoTx[index].vkWitnessHex};
                                         // console.log(txWitnesses)
 
-                                        // if (!txWitnesses){
-                                        //     txWitnesses = {}
-                                        // }
-                                        // // console.log("vkWitnessHex", members[memberIndex].name, vkWitnessHex)
-                                        // // daoTx[index][vkWitnessHex][memberIndex] = vkWitnessHex
-                                        // console.log(daoTx)
+                                        txWitnesses[memberIndex] = vkWitnessHex
+
+                                        // console.log(txWitnesses)
+                                        
+                                        daoTx[index].vkWitnessHex = txWitnesses
 
                                         localStorage.setItem("transactions_0", JSON.stringify(daoTx))
 
