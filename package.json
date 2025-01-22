@@ -13,7 +13,7 @@
   "dependencies": {
     "@emurgo/cardano-serialization-lib-browser": "^11.5.0",
     "@gamechanger-finance/gc": "^0.1.0",
-    "@gamechanger-finance/unimatrix": "^1.0.2",
+    "@gamechanger-finance/unimatrix": "file:../unimatrix/",
     "@mdi/font": "^7.4.47",
     "bip39": "^3.1.0",
     "cross-fetch": "^4.0.0",

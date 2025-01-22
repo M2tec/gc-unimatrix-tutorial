@@ -1,26 +1,28 @@
 import { useEffect, useState } from 'react'
 import { cardano as CardanoSync } from '@gamechanger-finance/unimatrix'
 import UnimatrixListener from '../services/UnimatrixListener';
-// import * as CSLib from '@emurgo/cardano-serialization-lib-browser';
+import * as CSLib from '@emurgo/cardano-serialization-lib-browser';
 import Gun from 'gun';
 import CardanoWasm from '../services/cardanoWasm';
 
 import holdingHandsImage from '../assets/holding_hands.png'
 import proposalsImage from '../assets/proposals.jpg'
 
+
+
 const Home = () => {
   const [members, setMembers] = useState({})
   const [proposals, setProposals] = useState({})
   const [daoInfo, setDaoInfo] = useState({})
   const [daoFundAmount, setDaoFundAmount] = useState("100")
+  const [daoTransactions, setDaoTransactions] = useState({})
 
   const [host, setHost] = useState("")
 
   const gc = window.gc;
-  
-  let path = ["signTxs"];
-  let dltTag = "cardano";
-  let networkTag = "preprod";
+
+  let peers = ["https://ar01.gamechanger.finance:2083/unimatrix/gun"]
+  const gun = new Gun({ peers });
 
   const defaultMemberData = { 0: { type: "Controller", name: "John", address: "", pubKey: "", stakeKey: "" } };
   const defaultProposalData = { 0: { type: "Governance", name: "", details: "", address: "", amount: "", txHashes: [] } };
@@ -40,6 +42,7 @@ const Home = () => {
   }
 
   useEffect(() => {
+    
 
     let getDaoInfo = JSON.parse(localStorage.getItem("daoInfo_0"));
 
@@ -66,9 +69,21 @@ const Home = () => {
 
     setProposals({ ...proposals, ...getProposals })
 
+    let getTransactions = JSON.parse(localStorage.getItem("transactions_0"));
+
+    if (getTransactions === null) {
+      getTransactions = {}
+    }
+
+    setDaoTransactions( {...getTransactions} )
+
 
     window.addEventListener('storage', () => {
       setMembers(JSON.parse(localStorage.getItem('members_0')) || {})
+    });
+
+    window.addEventListener('storage', () => {
+      setDaoTransactions(JSON.parse(localStorage.getItem('transactions_0')) || {})
     });
 
     let myHostname = location.protocol + '//' + location.host
@@ -488,16 +503,11 @@ const Home = () => {
     handleGC(gcscript);
   }
 
-  async function handleMonitorProposal(event, index) {
-
-    console.log("Monitor Proposal");
-
-  }
-
   async function handleSignProposal(event, index) {
 
     console.log("Sign Proposal");
 
+    console.log(daoTransactions)
     let gcscript = {
       "title": "Multi-sign transaction",
       "description": "Sign next",
@@ -520,18 +530,15 @@ const Home = () => {
               "share": true,
               "shareTxs": true,
               "announceTxHashes": true,
-              "relays": unimatrixRelays
+              "relays": peers
             }
           ],
-          "txs": [proposals[index].txHashes["0"]]
+          "txs": [daoTransactions[index].txHex]
         }
       }
     }
 
-
     handleGC(gcscript);
-
-
   }
 
 
@@ -571,48 +578,44 @@ const Home = () => {
   );
 
   const listProposals = Object.keys(proposals).map((item, index) =>
-      <li className="list-group-item" key={index} >{proposals[item].type}
-        <div className="input-group mb-3">
-          <div className="input-group-prepend">
-            <span className="input-group-text" id="basic-addon1">@</span>
-          </div>
-          <input type="text" onChange={(e) => handleProposalNameChange(e, index)} className="form-control" placeholder="Proposal name" defaultValue={proposals[item].name} aria-label="Username" aria-describedby="basic-addon1" />
+    <li className="list-group-item" key={index} >{proposals[item].type}
+      <div className="input-group mb-3">
+        <div className="input-group-prepend">
+          <span className="input-group-text" id="basic-addon1">@</span>
         </div>
+        <input type="text" onChange={(e) => handleProposalNameChange(e, index)} className="form-control" placeholder="Proposal name" defaultValue={proposals[item].name} aria-label="Username" aria-describedby="basic-addon1" />
+      </div>
 
-        <div className="input-group mb-3">
-          <div className="input-group-prepend">
-            <span className="input-group-text" id="basic-addon1">Reciever address</span>
-          </div>
-          <input type="text" onChange={(e) => handleProposalAddressChange(e, index)} className="form-control" placeholder="Cardano address" defaultValue={proposals[item].address} aria-label="Username" aria-describedby="basic-addon1" />
+      <div className="input-group mb-3">
+        <div className="input-group-prepend">
+          <span className="input-group-text" id="basic-addon1">Reciever address</span>
         </div>
+        <input type="text" onChange={(e) => handleProposalAddressChange(e, index)} className="form-control" placeholder="Cardano address" defaultValue={proposals[item].address} aria-label="Username" aria-describedby="basic-addon1" />
+      </div>
 
-        <div className="input-group mb-3">
-          <div className="input-group-prepend">
-            <span className="input-group-text" id="basic-addon1">Details</span>
-          </div>
-          <input type="text" onChange={(e) => handleProposalDetailsChange(e, index)} className="form-control" placeholder="" defaultValue={proposals[item].details} aria-label="Username" aria-describedby="basic-addon1" />
+      <div className="input-group mb-3">
+        <div className="input-group-prepend">
+          <span className="input-group-text" id="basic-addon1">Details</span>
         </div>
+        <input type="text" onChange={(e) => handleProposalDetailsChange(e, index)} className="form-control" placeholder="" defaultValue={proposals[item].details} aria-label="Username" aria-describedby="basic-addon1" />
+      </div>
 
-        <div className="input-group mb-3">
-          <div className="input-group-prepend">
-            <span className="input-group-text" id="basic-addon1">Amount</span>
-          </div>
-          <input type="text" onChange={(e) => handleProposalAmountChange(e, index)} className="form-control" placeholder="" defaultValue={proposals[item].amount} aria-label="Amount" aria-describedby="basic-addon1" />
+      <div className="input-group mb-3">
+        <div className="input-group-prepend">
+          <span className="input-group-text" id="basic-addon1">Amount</span>
         </div>
+        <input type="text" onChange={(e) => handleProposalAmountChange(e, index)} className="form-control" placeholder="" defaultValue={proposals[item].amount} aria-label="Amount" aria-describedby="basic-addon1" />
+      </div>
 
-        <a href="#" className="btn btn-primary m-2" onClick={(e) => handleAuthorizeProposal(e, index)}>Authorize</a>
-        <a href="#" className="btn btn-primary m-2" onClick={(e) => handleMonitorProposal(e, index)}>Monitor</a>
-        <a href="#" className="btn btn-primary m-2" onClick={(e) => handleSignProposal(e, index)}>Sign</a>
-        
-        <UnimatrixListener {...{
-          unimatrixId: `${daoInfo.name}-${index}`
-        }} />
+      <a href="#" className="btn btn-primary m-2" onClick={(e) => handleAuthorizeProposal(e, index)}>Authorize</a>
+      <a href="#" className="btn btn-primary m-2" onClick={(e) => handleSignProposal(e, index)}>Sign</a>
 
-
-{/* <UnimatrixListener {...{
-          unimatrixId: `m2tec_1234`
-        }} /> */}
-      </li>
+      <UnimatrixListener {...{
+          gun,
+          index,
+          unimatrixId: `${daoInfo.name}_${index}`
+        }} /> 
+    </li>
   );
 
   return (

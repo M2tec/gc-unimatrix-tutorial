@@ -1,5 +1,5 @@
-import {useEffect} from 'react';
-import {cardano as CardanoSync} from '@gamechanger-finance/unimatrix'
+import { useEffect } from 'react';
+import { cardano as CardanoSync } from '@gamechanger-finance/unimatrix'
 import CardanoWasm from './cardanoWasm';
 
 /**
@@ -10,65 +10,71 @@ import CardanoWasm from './cardanoWasm';
  * 
  * @param {*} param0 
  */
-export const UnimatrixListener =({
-    unimatrixId    
-})=>{
-    
-
-let unimatrixRelays = ["https://ar01.gamechanger.finance:2083/unimatrix/gun",
-    "http://localhost:5173/unimatrix/gun",
-    "http://localhost:5173/gun"]
-
-    const gun = new Gun({ unimatrixRelays });
-
+export const UnimatrixListener = ({
+    gun,
+    index,
+    unimatrixId
+}) => {
     let dltTag = "cardano";
     let networkTag = "preprod";
     let path = ["signTxs"];
 
-    const params={
-        CSL:CardanoWasm(),
-        db:gun,
+    const params = {
+        CSL: CardanoWasm(),
+        db: gun,
         dltTag,
         networkTag,
-        id:unimatrixId,
-        subPath:path, 
+        id: unimatrixId,
+        subPath: path,
     }
-    console.log("listener")
-    console.log("params", params)
 
-    useEffect(()=>{
-        if(!unimatrixId) 
+    useEffect(() => {
+
+        if (!gun || !unimatrixId || !path)
             return
-        (async()=>{
-            //We listen for announced group of transaction hashes
+
+        (async () => {
+
             CardanoSync.onTxHashes({
                 ...params,
-                cb:async ({txHashes,validationError,userError,timeoutError,store,node,stop})=>{
-                    if(validationError||userError||timeoutError)
-                        console.warn(`onTxHashes(): Error. ${JSON.stringify({validationError,userError,timeoutError,node})}`);
-                    if(txHashes){
-                        const updatedAt=store.updatedAt||0;
-                        // we register the transaction hashes
-                        // const txGroupId=registerTxHashes({txHashes})
-                        // console.info(`[${path.join('/')}]: Data = ${JSON.stringify({txGroupId,txHashes})}`);
+                cb: async ({ txHashes, validationError, userError, timeoutError, store, node, stop }) => {
+                    
+                    if (validationError || userError || timeoutError)
+                        console.warn(`onTxHashes(): Error. ${JSON.stringify({ validationError, userError, timeoutError, node })}`);
+                    
+                    if (txHashes) {
+                        
                         txHashes.forEach(txHash => {
-                            // for each transaction hash we try to retrieve the transaction data (CBOR hex)
-                            CardanoSync.getTxHex({...params,txHash})
-                                //we register the transaction data
-                                // .then(({txHex})=>registerTxHex({txGroupId,txHash,txHex,updatedAt}))
-                                .then(({ store }) => console.log(store))
-                                .catch(err=>{
-                                    console.warn(`Warning: Failed to fetch transaction '${txHash}'.${err||"Unknown error"}`);
+
+                            CardanoSync.getTxHex({ ...params, txHash })
+                                .then(({ txHex }) => {
+                                    console.log("storetx")
+                                    console.log(txHash, txHex)
+                                    let daoTx = JSON.parse(localStorage.getItem('transactions_0'))
+
+                                    if (daoTx === null) {
+                                        daoTx = { }
+                                    }
+
+                                    daoTx[index] = {"txHash": txHash, "txHex": txHex}
+                                    console.log("daoTx", daoTx)
+                                    localStorage.setItem("transactions_0", JSON.stringify(daoTx)  )
+                                })
+                                .then(({ txHex }) => {
+
+                                })
+                                .catch(err => {
+                                    console.warn(`Warning: Failed to fetch transaction '${txHash}'.${err || "Unknown error"}`);
                                     return {};
                                 });
-                        
+
                         });
                     }
                 },
             });
         })();
 
-    },[unimatrixId]);
+    }, [unimatrixId]);
     return null;
 }
 
