@@ -20,9 +20,10 @@ const Data = () => {
 
   useEffect(() => {
     console.log("results")
+    
     if (Object.keys(resultObj).length !== 0) {
 
-        if (resultObj.exports.userData) {
+      if (resultObj.exports.userData) {
         let userdata = resultObj.exports.userData
         let pubKey = userdata.addressInfo.paymentKeyHash
         let stakeKey = userdata.addressInfo.stakingKeyHash
@@ -39,15 +40,32 @@ const Data = () => {
           // console.log(members)
           localStorage.setItem("members_0", JSON.stringify(members))
         }
+
         
-        // window.close()
-      } else {
+      } else if (resultObj.exports.daoWalletData) {
+
+        let key = Object.keys(resultObj.exports.daoWalletData.getAddress)
+        // console.log(key)
+        let address = resultObj.exports.daoWalletData.getAddress[key].address
+        console.log(address)
+
+
+        let daoInfo = JSON.parse(localStorage.getItem("daoInfo_0"));
+
+        if (daoInfo !== null) {
+          daoInfo.address = address
+
+          localStorage.setItem("daoInfo_0", JSON.stringify(daoInfo))
+        }
+
+      }  else {
         console.log(resultObj.exports)
       }
 
     }
   }, [resultObj])
 
+  // window.close()
   return (<h1>Results</h1>)
 };
 

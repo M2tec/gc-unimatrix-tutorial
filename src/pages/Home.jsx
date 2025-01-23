@@ -76,11 +76,11 @@ const Home = () => {
     setDaoTransactions({ ...getTransactions })
 
 
-    window.addEventListener('storage', () => {
-      setMembers(JSON.parse(localStorage.getItem('members_0')) || {})
-    });
+    window.addEventListener('storage', () => {     
+      setDaoInfo(JSON.parse(localStorage.getItem('daoInfo_0')) || {})
 
-    window.addEventListener('storage', () => {
+      setMembers(JSON.parse(localStorage.getItem('members_0')) || {})
+
       setDaoTransactions(JSON.parse(localStorage.getItem('transactions_0')) || {})
     });
 
@@ -163,7 +163,7 @@ const Home = () => {
     let newNumber = parseInt(Object.keys(members)[Object.keys(members).length - 1]) + 1;
     let newMember = {}
 
-    newMember[newNumber] = defaultMemberData["0"]
+    newMember[newNumber] = { type: "Member", name: "", address: "", pubKey: "", stakeKey: "" }
 
     setMembers({ ...members, ...newMember })
     localStorage.setItem("members_0", JSON.stringify({ ...members, ...newMember }))
