@@ -1,16 +1,17 @@
 
 
-const Signers = ({ index, members, daoTransactions }) => {
+const Signers = ({ proposalTx, members }) => {
 
-    let daoTx = daoTransactions[index]
-    // let witness = daoTx.vkWitnessHex    
+    // let proposalTx = daoTransactions[index]
+    // let witness = proposalTx.vkWitnessHex    
     // console.log("proposal", index)
 
+    // console.log(proposalTx)
     function SignerItem({ memberIndex }) {
         let hasWitness = false
 
-        if (daoTx) {
-            let witness = daoTx.vkWitnessHex
+        if (proposalTx) {
+            let witness = proposalTx.vkWitnessHex
             // console.log(witness[memberIndex])
             if (witness[memberIndex]) {
                 hasWitness = true

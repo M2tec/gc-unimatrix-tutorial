@@ -422,6 +422,8 @@ const Home = () => {
 
     console.log("Authorize Proposal");
 
+    let lovelaceAmount = (proposals[index].amount * 10 ** 6).toString()
+
     const gcscript =
     {
       "type": "script",
@@ -442,7 +444,7 @@ const Home = () => {
                   {
                     "policyId": "ada",
                     "assetName": "ada",
-                    "quantity": proposals[index].amount
+                    "quantity": lovelaceAmount
                   }
                 ]
               }
@@ -576,46 +578,51 @@ const Home = () => {
 
   );
 
-  const listProposals = Object.keys(proposals).map((item, index) =>
-    <li className="list-group-item" key={index} >{proposals[item].type}
+  const listProposals = Object.keys(proposals).map((item, index) => {
+
+    let proposal = proposals[item]
+    let proposalTx = daoTransactions[index]
+
+    return (
+    <li className="list-group-item" key={index} >{proposal.type}
       <div className="input-group mb-3">
         <div className="input-group-prepend">
           <span className="input-group-text" id="basic-addon1">@</span>
         </div>
-        <input type="text" onChange={(e) => handleProposalNameChange(e, index)} className="form-control" placeholder="Proposal name" defaultValue={proposals[item].name} aria-label="Username" aria-describedby="basic-addon1" />
+        <input type="text" onChange={(e) => handleProposalNameChange(e, index)} className="form-control" placeholder="Proposal name" defaultValue={proposal.name} aria-label="Username" aria-describedby="basic-addon1" />
       </div>
 
       <div className="input-group mb-3">
         <div className="input-group-prepend">
           <span className="input-group-text" id="basic-addon1">Reciever address</span>
         </div>
-        <input type="text" onChange={(e) => handleProposalAddressChange(e, index)} className="form-control" placeholder="Cardano address" defaultValue={proposals[item].address} aria-label="Username" aria-describedby="basic-addon1" />
+        <input type="text" onChange={(e) => handleProposalAddressChange(e, index)} className="form-control" placeholder="Cardano address" defaultValue={proposal.address} aria-label="Username" aria-describedby="basic-addon1" />
       </div>
 
       <div className="input-group mb-3">
         <div className="input-group-prepend">
           <span className="input-group-text" id="basic-addon1">Details</span>
         </div>
-        <input type="text" onChange={(e) => handleProposalDetailsChange(e, index)} className="form-control" placeholder="" defaultValue={proposals[item].details} aria-label="Username" aria-describedby="basic-addon1" />
+        <input type="text" onChange={(e) => handleProposalDetailsChange(e, index)} className="form-control" placeholder="" defaultValue={proposal.details} aria-label="Username" aria-describedby="basic-addon1" />
       </div>
 
       <div className="input-group mb-3">
         <div className="input-group-prepend">
           <span className="input-group-text" id="basic-addon1">Amount</span>
         </div>
-        <input type="text" onChange={(e) => handleProposalAmountChange(e, index)} className="form-control" placeholder="" defaultValue={proposals[item].amount} aria-label="Amount" aria-describedby="basic-addon1" />
+        <input type="text" onChange={(e) => handleProposalAmountChange(e, index)} className="form-control" placeholder="" defaultValue={proposal.amount} aria-label="Amount" aria-describedby="basic-addon1" />
       </div>
 
-      <Signers {...{ index, members, daoTransactions }} />
+      <Signers {...{ proposalTx, members }} />
       <a href="#" className="btn btn-primary m-2" onClick={(e) => handleAuthorizeProposal(e, index)}>Authorize</a>
       <a href="#" className="btn btn-primary m-2" onClick={(e) => handleSignProposal(e, index)}>Sign</a>
       <UnimatrixListener {...{
         gun,
         index,
         unimatrixId: `${daoInfo.name}_${index}`,
-        members
-      }} />
-    </li>
+        members }} />
+    </li>)
+  }
   );
 
   return (
