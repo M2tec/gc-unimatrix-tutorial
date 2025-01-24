@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { cardano as CardanoSync } from '@gamechanger-finance/unimatrix'
 import CardanoWasm from './cardanoWasm';
+
 // import { onVkWitnessHex } from '@gamechanger-finance/unimatrix/dist/types/sync';
 
 /**
@@ -50,22 +51,24 @@ export const UnimatrixListener = ({
 
                             CardanoSync.getTxHex({ ...params, txHash })
                                 .then(({ txHex }) => {
-                                    // console.log(params)
+                                    // console.log("txHash", { index, txHash })
                                     let daoTx = JSON.parse(localStorage.getItem('transactions_0'))
 
-                                    if (daoTx === null) {
+                                    if (!daoTx) {
                                         daoTx = {}
+                                        // localStorage.setItem("transactions_0", JSON.stringify(daoTx))
                                     }
 
-                                    let newDaoTx = {}
-                                    newDaoTx[index] = {"txHash": txHash, "txHex": txHex, "vkWitnessHex": {}}
+                                    if (!daoTx[index]) {
+                                        console.log("No tx registered yet")
+                                        let newDaoTx = {}
+                                        newDaoTx[index] = { "txHash": txHash, "txHex": txHex, "vkWitnessHex": {} }
 
-                                    daoTx = {...daoTx, ...newDaoTx}
+                                        daoTx = { ...daoTx, ...newDaoTx }
+                                        console.log(daoTx)
+                                        localStorage.setItem("transactions_0", JSON.stringify(daoTx))
+                                    }
 
-                                    //console.log("daoTx ---:", daoTx)
-                                    
-                                    localStorage.setItem("transactions_0", JSON.stringify(daoTx))
-                                    
                                 })
                                 .catch(err => {
                                     console.warn(`Warning: Failed to fetch transaction '${txHash}'.${err || "Unknown error"}`);
@@ -79,48 +82,45 @@ export const UnimatrixListener = ({
 
                                 let vkHash = members[memberIndex].pubKey;
 
+
                                 CardanoSync.getVkWitnessHex({ ...params, txHash, vkHash })
                                     .then(({ vkWitnessHex }) => {
+                                        console.log(members[memberIndex].name, vkWitnessHex)
+                                        // console.log(members[memberIndex].name, txHash)
 
-                                        let daoTx = JSON.parse(localStorage.getItem('transactions_0'))
+                                        let daoTxs = JSON.parse(localStorage.getItem('transactions_0'))
 
-                                        //console.log(daoTx)
-                                        // if (daoTx === null) {
-                                        //     daoTx = {}
-                                        // }
+                                        let currentProposalDaoTx = daoTxs[index]
 
-                                        let txWitnesses = {...daoTx[index].vkWitnessHex};
+                                        console.log("x", currentProposalDaoTx.vkWitnessHex[index])
+
+                                        if (!(currentProposalDaoTx.vkWitnessHex[index])) {
+                                            "no vk index"
+                                            currentProposalDaoTx.vkWitnessHex = {}
+                                        }
+                                        // console.log(daoTxs)
+
+                                        // if 
+
+                                        // Current proposal indexes
+                                        // let txWitnesses = {...daoTxs[index].vkWitnessHex};
                                         // console.log(txWitnesses)
 
-                                        txWitnesses[memberIndex] = vkWitnessHex
+                                        // txWitnesses[memberIndex] = vkWitnessHex
 
-                                        // console.log(txWitnesses)
-                                        
-                                        daoTx[index].vkWitnessHex = txWitnesses
+                                        // console.log("txWitnesss", txWitnesses)
 
-                                        localStorage.setItem("transactions_0", JSON.stringify(daoTx))
+                                        // daoTxs[index].vkWitnessHex = txWitnesses
 
-                                        
+                                        // localStorage.setItem("transactions_0", JSON.stringify(daoTxs))
+
+
                                     })
                                     .catch(err => {
                                         console.warn(`Warning: Failed to fetch witness '${txHash}'.${err || "Unknown error"}`);
                                         return {};
                                     });
                             }
-
-
-                            
-
-                            // CardanoSync.onVkWitnessHex({
-                            //     ...params, txHash, vkHash,
-                            //     cb: async ({ txVkHexes, validationError, userError, timeoutError, store, node, stop }) => {
-                            //         console.log("Witnesshex")                    
-                            //         if (validationError || userError || timeoutError)
-                            //             console.warn(`onTxVkHexes(): Error. ${JSON.stringify({ validationError, userError, timeoutError, node })}`);
-
-                            //         if (txVkHexes) { console.log(txVkHexes)}
-                            //     },
-                            // });
                         });
 
 

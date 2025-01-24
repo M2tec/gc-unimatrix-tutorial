@@ -36,7 +36,7 @@ const Home = () => {
       encoding: 'gzip' //suggested, default message encoding/compression 
     });
 
-    url = url.replace("https://beta-preprod-wallet.", "https://dev-preprod-wallet.")
+    // url = url.replace("https://beta-preprod-wallet.", "https://dev-preprod-wallet.")
     
     window.open(url, '_blank', 'location=yes,height=700,width=520,scrollbars=yes,status=yes');
   }
