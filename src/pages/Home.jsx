@@ -36,7 +36,11 @@ const Home = () => {
       encoding: 'gzip' //suggested, default message encoding/compression 
     });
 
-    window.open(url, '_blank', 'location=yes,height=700,width=520,scrollbars=yes,status=yes');
+    // https://dev-preprod-wallet.gamechanger.finance/
+    let devUrl = url.replace("https://beta-preprod-wallet.", "https://dev-preprod-wallet.")
+    console.log(devUrl)
+
+    window.open(devUrl, '_blank', 'location=yes,height=700,width=520,scrollbars=yes,status=yes');
   }
 
   useEffect(() => {
@@ -303,7 +307,7 @@ const Home = () => {
       "type": "script",
       "title": "Funding DAO",
       "description": "This will fund the DAO with the following amount " + daoFundAmount,
-      "exportAs": "CoinSendingDemo",
+      "exportAs": "fundDAO",
       "return": {
         "mode": "last"
       },
