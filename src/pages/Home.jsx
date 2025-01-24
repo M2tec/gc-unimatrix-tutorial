@@ -29,17 +29,17 @@ const Home = () => {
 
     console.log(JSON.stringify(gcscript))
 
-    const url = await gc.encode.url({
+    let url = await gc.encode.url({
       input: JSON.stringify(gcscript), // GCScript is pure JSON code, supported on all platforms
       apiVersion: '2', //APIV2
       network: 'preprod', // mainnet or preprod
       encoding: 'gzip' //suggested, default message encoding/compression 
     });
 
-    let devUrl = url.replace("https://beta-preprod-wallet.", "https://dev-preprod-wallet.")
+    // url = url.replace("https://beta-preprod-wallet.", "https://dev-preprod-wallet.")
     // console.log(devUrl)
 
-    window.open(devUrl, '_blank', 'location=yes,height=700,width=520,scrollbars=yes,status=yes');
+    window.open(url, '_blank', 'location=yes,height=700,width=520,scrollbars=yes,status=yes');
   }
 
   useEffect(() => {
