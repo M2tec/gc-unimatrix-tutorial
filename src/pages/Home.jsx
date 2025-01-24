@@ -36,9 +36,8 @@ const Home = () => {
       encoding: 'gzip' //suggested, default message encoding/compression 
     });
 
-    // https://dev-preprod-wallet.gamechanger.finance/
     let devUrl = url.replace("https://beta-preprod-wallet.", "https://dev-preprod-wallet.")
-    console.log(devUrl)
+    // console.log(devUrl)
 
     window.open(devUrl, '_blank', 'location=yes,height=700,width=520,scrollbars=yes,status=yes');
   }
@@ -486,11 +485,6 @@ const Home = () => {
             "{get('cache.build_0.txHex')}"
           ]
         },
-        "submit_2": {
-          "type": "submitTxs",
-          "namePattern": "Submitted Demo Transaction",
-          "txs": "{get('cache.sign_1')}"
-        },
         "stage4_export_results": {
           "type": "macro",
           "run": "{get('cache.build_0.txHash')}"
@@ -513,13 +507,15 @@ const Home = () => {
 
     console.log("Sign Proposal");
 
-    console.log(daoTransactions)
+    let memberAmount = Object.keys(members).length
+    let witnessKeyAmount = Object.keys(daoTransactions[index].vkWitnessHex).length
+
     let gcscript = {
       "title": "Multi-sign transaction",
       "description": "Sign next",
       "type": "script",
       "run": {
-        "sign": {
+        "sign_0": {
           "type": "signTxs",
           "namePattern": "MultiSig-{key}",
           "multisig": [
@@ -542,6 +538,25 @@ const Home = () => {
           "txs": [daoTransactions[index].txHex]
         }
       }
+    }
+
+    // Add submit to the final signing. 
+    if (witnessKeyAmount == memberAmount -1) {
+      console.log (witnessKeyAmount, memberAmount)
+
+      gcscript["run"]["submit_2"]= 
+      {
+        "type": "submitTxs",
+        "namePattern": "Submitted Demo Transaction",
+        "txs": "{get('cache.sign_0')}"
+      }
+
+    }
+
+    // With all witnesskeys present abort
+    if (witnessKeyAmount >= memberAmount) {
+      console.log ("Transaction finished")
+      return
     }
 
     handleGC(gcscript);
@@ -582,7 +597,7 @@ const Home = () => {
 
   );
 
-  const listProposals = Object.keys(proposals).map((item, index) => {
+  const listProposals = (proposals, daoTransactions) => Object.keys(proposals).map((item, index) => {
 
     let proposal = proposals[item]
     let proposalTx = daoTransactions[index]
@@ -673,7 +688,7 @@ const Home = () => {
         <div className="card-body">
           <h5 className="card-title">Proposal</h5>
           <ul className="list-group">
-            {listProposals}
+            {listProposals(proposals, daoTransactions)}
             <a className="btn btn-primary mt-2" onClick={handleAddProposal}>Add proposal</a>
           </ul>
         </div>
