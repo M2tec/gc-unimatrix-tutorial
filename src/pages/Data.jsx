@@ -65,7 +65,7 @@ const Data = () => {
     }
   }, [resultObj])
 
-  // window.close()
+  window.close()
   return (<h1>Results</h1>)
 };
 
