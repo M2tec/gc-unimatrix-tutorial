@@ -79,6 +79,7 @@ const Home = () => {
 
 
     window.addEventListener('storage', () => {     
+      console.log("StorageEvent")
       setDaoInfo(JSON.parse(localStorage.getItem('daoInfo_0')) || {})
 
       setMembers(JSON.parse(localStorage.getItem('members_0')) || {})

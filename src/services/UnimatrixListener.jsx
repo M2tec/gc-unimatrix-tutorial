@@ -60,13 +60,14 @@ export const UnimatrixListener = ({
                                     }
 
                                     if (!daoTx[index]) {
-                                        console.log("No tx registered yet")
+                                        // console.log("Register Tx: " + index)
                                         let newDaoTx = {}
                                         newDaoTx[index] = { "txHash": txHash, "txHex": txHex, "vkWitnessHex": {} }
 
                                         daoTx = { ...daoTx, ...newDaoTx }
-                                        console.log(daoTx)
+                                        // console.log(daoTx)
                                         localStorage.setItem("transactions_0", JSON.stringify(daoTx))
+                                        window.dispatchEvent(new Event("storage"));
                                     }
 
                                 })
@@ -77,43 +78,31 @@ export const UnimatrixListener = ({
 
 
                             for (let memberIndex in members) {
-                                // console.log("member: " + members[memberIndex].name)
-                                // console.log(members[memberIndex]);
 
                                 let vkHash = members[memberIndex].pubKey;
 
-
                                 CardanoSync.getVkWitnessHex({ ...params, txHash, vkHash })
                                     .then(({ vkWitnessHex }) => {
-                                        console.log(members[memberIndex].name, vkWitnessHex)
+                                        // console.log(members[memberIndex].name, vkWitnessHex)
                                         // console.log(members[memberIndex].name, txHash)
 
                                         let daoTxs = JSON.parse(localStorage.getItem('transactions_0'))
 
-                                        let currentProposalDaoTx = daoTxs[index]
-
-                                        console.log("x", currentProposalDaoTx.vkWitnessHex[index])
-
-                                        if (!(currentProposalDaoTx.vkWitnessHex[index])) {
-                                            "no vk index"
-                                            currentProposalDaoTx.vkWitnessHex = {}
-                                        }
                                         // console.log(daoTxs)
-
-                                        // if 
-
-                                        // Current proposal indexes
-                                        // let txWitnesses = {...daoTxs[index].vkWitnessHex};
-                                        // console.log(txWitnesses)
-
-                                        // txWitnesses[memberIndex] = vkWitnessHex
-
-                                        // console.log("txWitnesss", txWitnesses)
-
-                                        // daoTxs[index].vkWitnessHex = txWitnesses
-
-                                        // localStorage.setItem("transactions_0", JSON.stringify(daoTxs))
-
+                                        
+                                        if (daoTxs[index].vkWitnessHex[memberIndex] === undefined) {
+                                            let witnessObj = {};
+                                            witnessObj = daoTxs[index].vkWitnessHex
+                                            // console.log(members[memberIndex].name, witnessObj)
+                                            witnessObj[memberIndex] = vkWitnessHex 
+    
+                                            Object.assign(daoTxs[index].vkWitnessHex, witnessObj )
+                                            
+                                            // console.log(daoTxs[index])
+    
+                                            localStorage.setItem("transactions_0", JSON.stringify(daoTxs))
+                                            window.dispatchEvent(new Event("storage"));
+                                        }
 
                                     })
                                     .catch(err => {
