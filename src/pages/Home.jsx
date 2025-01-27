@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react'
-import { cardano as CardanoSync } from '@gamechanger-finance/unimatrix'
 import UnimatrixListener from '../services/UnimatrixListener';
-import * as CSLib from '@emurgo/cardano-serialization-lib-browser';
 import Gun from 'gun';
-import CardanoWasm from '../services/cardanoWasm';
 import Signers from './Signers';
 import holdingHandsImage from '../assets/holding_hands.png'
 import proposalsImage from '../assets/proposals.jpg'
